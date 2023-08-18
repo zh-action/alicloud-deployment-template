@@ -1,0 +1,26 @@
+name: Deployment Workflow
+
+on:
+  push:
+    paths:
+      - '**'
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Environment on which to deploy (dev|stage|prod)"
+        type: string
+        required: false
+        default: dev
+      apply:
+        description: "terraform apply"
+        type: boolean
+        required: false
+        default: false
+
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3

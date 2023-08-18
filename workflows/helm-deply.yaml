@@ -1,0 +1,46 @@
+name: Deploy Helm Chart
+
+on:
+  push:
+    paths:
+      - '**'
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Environment on which to deploy (dev|stage|prod)"
+        type: string
+        required: false
+        default: dev
+      apply:
+        description: "terraform apply"
+        type: boolean
+        required: false
+        default: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Kubernetes cluster
+        uses: azure/setup-k8s@v1
+        with:
+          kubeconfig: ${{ secrets.KUBECONFIG }}  # 需要提前设置好 Kubernetes 集群的访问配置
+
+      - name: Configure Helm
+        run: |
+          curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3
+          chmod 700 get_helm.sh
+          ./get_helm.sh
+
+      - name: Deploy Helm Chart
+        run: |
+          helm repo add myrepo https://example.com/myrepo  # 添加 Helm 仓库
+          helm repo update
+          helm upgrade --install myrelease myrepo/mychart  # 部署 Helm Chart，可以根据实际情况修改参数
+        env:
+          KUBECONFIG: ${{ secrets.KUBECONFIG }}  # 需要设置 KUBECONFIG 环境变量以访问 Kubernetes 集群
+
