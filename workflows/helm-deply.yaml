@@ -16,31 +16,49 @@ on:
         type: boolean
         required: false
         default: false
+  env:
+    cluster-id: cbf52d659db8b4fb1b11d4646884f4a1a
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, X64]
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Set up Kubernetes cluster
-        uses: azure/setup-k8s@v1
-        with:
-          kubeconfig: ${{ secrets.KUBECONFIG }}  # 需要提前设置好 Kubernetes 集群的访问配置
+    - name: Install Helm
+      run: |
+        curl https://baltocdn.com/helm/signing.asc | sudo apt-key add -
+        sudo apt-get install apt-transport-https --yes
+        echo "deb https://baltocdn.com/helm/stable/debian/ all main" | sudo tee /etc/apt/sources.list.d/helm-stable-debian.list
+        sudo apt-get update
+        sudo apt-get install helm
 
-      - name: Configure Helm
-        run: |
-          curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3
-          chmod 700 get_helm.sh
-          ./get_helm.sh
+    - uses: aliyun/ack-set-context@v1
+      with:
+        access-key-id: ${{ secrets.ALIYUN_ACCESS_KEY_ID }}
+        access-key-secret: ${{ secrets.ALIYUN_ACCESS_KEY_SECRET }}
+        cluster-id: env.${{ env.cluster-id }}
 
-      - name: Deploy Helm Chart
-        run: |
-          helm repo add myrepo https://example.com/myrepo  # 添加 Helm 仓库
-          helm repo update
-          helm upgrade --install myrelease myrepo/mychart  # 部署 Helm Chart，可以根据实际情况修改参数
-        env:
-          KUBECONFIG: ${{ secrets.KUBECONFIG }}  # 需要设置 KUBECONFIG 环境变量以访问 Kubernetes 集群
+    - name: Setup kubeconfig
+      run: |
+         # 获取 Kubeconfig
+         mkdir -p $HOME/.kube
+      aliyun cs GET /k8s/${{ env.cluster-id }}/user_config | jq -r '.config' > $HOME/.kube/config
+
+    - name: Install kubectl
+      run: |
+        sudo curl -LO https://kubernetes-release.pek3b.qingstor.com/release/v1.21.4/bin/linux/amd64/kubectl
+        sudo chmod +x kubectl
+        sudo mv kubectl /usr/local/bin/
+
+    - name: Deploy with Helm to ACK
+      run: |
+        # 使用 Helm 部署
+        helm upgrade --install nginx ./.github/helm \
+           #--set image.repository=registry.cn-beijing.aliyuncs.com/dfs-demo/net-core \
+           --set image.repository=nginx \
+           --set image.tag=latest
+
 
