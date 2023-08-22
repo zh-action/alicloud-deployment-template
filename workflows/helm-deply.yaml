@@ -8,9 +8,15 @@ on:
     inputs:
       environment:
         description: "Environment on which to deploy (dev|stage|prod)"
-        type: string
+        type: choice
         required: false
+        options:
+          - dev
+          - stage
+          - prod
         default: dev
+
+        
       apply:
         description: "terraform apply"
         type: boolean
