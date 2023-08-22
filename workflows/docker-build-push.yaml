@@ -8,7 +8,7 @@ on:
     inputs:
       environment:
         description: "Environment on which to deploy (dev|stage|prod)"
-        type: choic
+        type: choice
         required: false
         options:
           - dev
