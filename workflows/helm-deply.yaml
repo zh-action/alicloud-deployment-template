@@ -39,7 +39,7 @@ jobs:
       with:
         access-key-id: ${{ secrets.ALIYUN_ACCESS_KEY_ID }}
         access-key-secret: ${{ secrets.ALIYUN_ACCESS_KEY_SECRET }}
-        cluster-id: env.${{ env.cluster-id }}
+        cluster-id: ${{ env.cluster-id }}
 
     - name: Setup kubeconfig
       run: |
