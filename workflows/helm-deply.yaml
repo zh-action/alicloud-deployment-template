@@ -2,8 +2,9 @@ name: Deploy Helm Chart
 
 on:
   push:
-    paths:
-      - '**'
+    branches:
+      - master
+
   workflow_dispatch:
     inputs:
       environment:
@@ -16,23 +17,21 @@ on:
           - prod
         default: dev
 
-        
-      apply:
-        description: "terraform apply"
-        type: boolean
-        required: false
-        default: false
-  env:
-    cluster-id: cbf52d659db8b4fb1b11d4646884f4a1a
+env:
+  CLUSTER_ID: "cbf52d659db8b4fb1b11d4646884f4a1a"
+  DEPLOY_NAME: demo
+  IMAGE_REPO: nginx
+  IMAGE_TAG: latest
 
 jobs:
   deploy:
     runs-on: [self-hosted, linux, X64]
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
+    
+    - name: Checkout Repository
+      uses: actions/checkout@v3
+    
     - name: Install Helm
       run: |
         curl https://baltocdn.com/helm/signing.asc | sudo apt-key add -
@@ -40,18 +39,18 @@ jobs:
         echo "deb https://baltocdn.com/helm/stable/debian/ all main" | sudo tee /etc/apt/sources.list.d/helm-stable-debian.list
         sudo apt-get update
         sudo apt-get install helm
-
+    
     - uses: aliyun/ack-set-context@v1
       with:
         access-key-id: ${{ secrets.ALIYUN_ACCESS_KEY_ID }}
         access-key-secret: ${{ secrets.ALIYUN_ACCESS_KEY_SECRET }}
-        cluster-id: ${{ env.cluster-id }}
+        cluster-id: ${{ env.CLUSTER_ID }}
 
     - name: Setup kubeconfig
       run: |
          # 获取 Kubeconfig
          mkdir -p $HOME/.kube
-      aliyun cs GET /k8s/${{ env.cluster-id }}/user_config | jq -r '.config' > $HOME/.kube/config
+         aliyun cs GET /k8s/${{ env.CLUSTER_ID }}/user_config | jq -r '.config' > $HOME/.kube/config
 
     - name: Install kubectl
       run: |
@@ -62,9 +61,7 @@ jobs:
     - name: Deploy with Helm to ACK
       run: |
         # 使用 Helm 部署
-        helm upgrade --install nginx ./.github/helm \
+        helm upgrade --install ${{ env.DEPLOY_NAME }} ./.github/helm \
            #--set image.repository=registry.cn-beijing.aliyuncs.com/dfs-demo/net-core \
-           --set image.repository=nginx \
-           --set image.tag=latest
-
-
+           --set image.repository=${{ env.IMAGE_REPO }} \
+           --set image.tag=${{ env.IMAGE_TAG }}
