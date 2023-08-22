@@ -4,6 +4,19 @@ on:
   push:
     branches:
       - master  # Change this to your desired branch
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Environment on which to deploy (dev|stage|prod)"
+        type: choic
+        required: false
+        options:
+          - dev
+          - stage
+          - prod
+        default: dev
+  env:
+    alicloud-region: cn-beijing
 
 jobs:
   build-and-push:
