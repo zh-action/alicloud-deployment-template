@@ -7,16 +7,7 @@ on:
     tags:
       - '*'
   workflow_dispatch:
-    inputs:
-      environment:
-        description: "Environment on which to deploy (dev|stage|prod)"
-        type: choice
-        required: false
-        options:
-          - dev
-          - stage
-          - prod
-        default: dev
+
 env:
   ALICLOUD_REGION: cn-beijing
   NAMESPACE: your-namespace
