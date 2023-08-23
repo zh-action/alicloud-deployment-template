@@ -8,12 +8,12 @@ on:
   workflow_dispatch:
     inputs:
       environment:
-        description: "Environment on which to deploy (dev|stage|prod)"
+        description: "Environment on which to deploy (dev|staging|prod)"
         type: choice
         required: false
         options:
           - dev
-          - stage
+          - staging
           - prod
         default: dev
 
@@ -61,7 +61,7 @@ jobs:
     - name: Deploy with Helm to ACK
       run: |
         # 使用 Helm 部署
-        helm upgrade --install ${{ env.DEPLOY_NAME }} ./.github/helm \
+        helm upgrade --install ${{ env.DEPLOY_NAME }} ./.github/helm -f ./github/helm/templates/dev-${{ github.event.inputs.option }}.yaml \
            #--set image.repository=registry.cn-beijing.aliyuncs.com/dfs-demo/net-core \
            --set image.repository=${{ env.IMAGE_REPO }} \
            --set image.tag=${{ env.IMAGE_TAG }}
