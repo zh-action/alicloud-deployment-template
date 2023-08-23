@@ -4,7 +4,8 @@ on:
   push:
     branches:
       - master
-
+    tags:
+      - '*'
   workflow_dispatch:
     inputs:
       environment:
@@ -15,14 +16,14 @@ on:
           - dev
           - staging
           - prod
-        default: dev
 
 env:
   CLUSTER_ID: "cbf52d659db8b4fb1b11d4646884f4a1a"
   DEPLOY_NAME: demo
   IMAGE_REPO: nginx
   IMAGE_TAG: latest
-
+  deploy_env: ${{ inputs.environment || 'dev' }}
+  
 jobs:
   deploy:
     runs-on: [self-hosted, linux, X64]
@@ -61,7 +62,7 @@ jobs:
     - name: Deploy with Helm to ACK
       run: |
         # 使用 Helm 部署
-        helm upgrade --install ${{ env.DEPLOY_NAME }} ./.github/helm -f ./github/helm/templates/dev-${{ github.event.inputs.option }}.yaml \
+        helm upgrade --install ${{ env.DEPLOY_NAME }} ./.github/helm -f ./github/helm/templates/dev-${{env.deplay_env}}.yaml \
            #--set image.repository=registry.cn-beijing.aliyuncs.com/dfs-demo/net-core \
            --set image.repository=${{ env.IMAGE_REPO }} \
            --set image.tag=${{ env.IMAGE_TAG }}
