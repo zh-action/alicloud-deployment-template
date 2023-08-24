@@ -63,7 +63,7 @@ jobs:
     - name: Deploy with Helm to ACK
       run: |
         # 使用 Helm 部署
-        helm upgrade --install ${{ env.DEPLOY_NAME }} ./.github/helm -f ./github/helm/templates/values-${{ env.DEYLOY_ENV }}.yaml \
+        helm upgrade --install ${{ env.DEPLOY_NAME }} ./.github/helm -f ./github/helm/values-${{ env.DEYLOY_ENV }}.yaml \
            #--set image.repository=registry.cn-beijing.aliyuncs.com/dfs-demo/net-core \
            --set image.repository=${{ env.IMAGE_REPO }} \
            --set image.tag=${{ env.IMAGE_TAG }}
